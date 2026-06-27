@@ -11,6 +11,7 @@ import { Icons } from "@/components/icons";
 import { MiniExerciseWidget } from "@/components/MiniExercise";
 import { QuizEngine } from "@/components/QuizEngine";
 import { LessonInteractive } from "@/components/interactive/registry";
+import { SpeechReader } from "@/components/SpeechReader";
 
 export default function LessonClient({
   params,
@@ -49,6 +50,19 @@ export default function LessonClient({
     completeLesson(lessonId);
     router.push(nextHref);
   }
+
+  // Text segments read aloud, in learning order.
+  const speechSegments = [
+    { label: "כותרת ומטרה", text: `${lesson.title}. מטרת השיעור: ${lesson.objective}` },
+    ...lesson.explanation.map((p, i) => ({ label: `הסבר (${i + 1})`, text: p })),
+    { label: "דוגמה מעשית", text: `דוגמה מעשית: ${lesson.example}` },
+    { label: "טעות נפוצה", text: `טעות נפוצה של מתחילים: ${lesson.commonMistake}` },
+    { label: "חוק מפתח", text: `חוק מפתח: ${lesson.keyRule}` },
+    {
+      label: "סיכום השיעור",
+      text: `סיכום השיעור. ${lesson.summary.join(". ")}`,
+    },
+  ];
 
   return (
     <div className="pb-24">
@@ -109,6 +123,11 @@ export default function LessonClient({
         <InfoBox title="מטרת השיעור" emoji="🎯" tone="objective">
           {lesson.objective}
         </InfoBox>
+      </div>
+
+      {/* Voice reader */}
+      <div className="mt-4">
+        <SpeechReader segments={speechSegments} />
       </div>
 
       {/* Explanation */}
