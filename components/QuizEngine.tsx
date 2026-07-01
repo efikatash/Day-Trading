@@ -3,6 +3,7 @@
 import React, { useMemo, useState } from "react";
 import type { QuizQuestion } from "@/lib/types";
 import { useProgress } from "@/lib/progress";
+import { prepareQuestions } from "@/lib/quiz-utils";
 import { Badge } from "@/components/ui";
 import { Icons } from "@/components/icons";
 
@@ -32,7 +33,7 @@ function isCorrect(q: QuizQuestion, a: AnswerValue): boolean {
 }
 
 export function QuizEngine({
-  questions,
+  questions: rawQuestions,
   quizId,
   title,
   passingScore = 70,
@@ -40,6 +41,12 @@ export function QuizEngine({
   onPassed,
 }: QuizEngineProps) {
   const { saveQuizResult } = useProgress();
+  // Reorder MC options deterministically so the correct answer isn't at a
+  // predictable position. Stable per question id across renders.
+  const questions = useMemo(
+    () => prepareQuestions(rawQuestions),
+    [rawQuestions]
+  );
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<AnswerValue[]>(
     () => questions.map(() => null)
