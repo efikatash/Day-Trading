@@ -14,6 +14,7 @@ import { getLesson } from "@/lib/data/lessons";
 import { getPersonalGreeting, getStudyTimeLabel } from "@/lib/personalize";
 import { Ring, StatCard, ProgressBar, Badge, Disclaimer } from "@/components/ui";
 import { Icons } from "@/components/icons";
+import { BackupPanel } from "@/components/BackupPanel";
 
 export default function DashboardPage() {
   const { state, ready } = useProgress();
@@ -193,6 +194,8 @@ export default function DashboardPage() {
           </Link>
         ))}
       </div>
+
+      <BackupPanel />
 
       <Disclaimer compact />
     </div>

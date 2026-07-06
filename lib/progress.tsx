@@ -55,6 +55,9 @@ interface ProgressContextValue {
   // tool state (generic)
   setToolState: (key: string, value: unknown) => void;
   getToolState: <T,>(key: string, fallback: T) => T;
+  // backup / restore
+  exportState: () => void;
+  importState: (data: unknown) => boolean;
   // reset
   resetAll: () => void;
 }
@@ -246,6 +249,45 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
     setState(fresh);
   }, [state.theme]);
 
+  const exportState = useCallback(() => {
+    try {
+      const payload = { app: "day-trading-course", ...state };
+      const json = JSON.stringify(payload, null, 2);
+      const blob = new Blob([json], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      const stamp = new Date().toISOString().slice(0, 10);
+      a.href = url;
+      a.download = `גיבוי-קורס-מסחר-${stamp}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch {
+      // ignore
+    }
+  }, [state]);
+
+  const importState = useCallback((data: unknown): boolean => {
+    if (!data || typeof data !== "object") return false;
+    const obj = data as Partial<ProgressState> & { app?: string };
+    // Basic sanity check: it must look like our progress payload.
+    const looksValid =
+      "completedLessons" in obj ||
+      "quizResults" in obj ||
+      "journal" in obj ||
+      obj.app === "day-trading-course";
+    if (!looksValid) return false;
+    const rest: Partial<ProgressState> = { ...obj };
+    delete (rest as { app?: string }).app;
+    setState((s) => ({
+      ...createInitialState(),
+      ...rest,
+      theme: rest.theme ?? s.theme,
+    }));
+    return true;
+  }, []);
+
   const value = useMemo<ProgressContextValue>(
     () => ({
       state,
@@ -269,6 +311,8 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
       toggleTheme,
       setToolState,
       getToolState,
+      exportState,
+      importState,
       resetAll,
     }),
     [
@@ -293,6 +337,8 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
       toggleTheme,
       setToolState,
       getToolState,
+      exportState,
+      importState,
       resetAll,
     ]
   );
